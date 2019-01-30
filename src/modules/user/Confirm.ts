@@ -18,15 +18,16 @@ export class ConfirmResolver {
     token
   }: ConfirmUserInput): Promise<void | Boolean> {
     try {
+      // Get user Id from redis token
       const userId = await redis.get(token);
-
       if (!userId) throw new Error("User ID not found from token");
 
+      // Get user from database with users Id
       const user = await User.findOne(userId);
-      // If user's missing or already confirmed throw an error
       if (!user) throw new Error("User not found");
       if (user.confirmed) throw new Error("User has already been confirmed");
-      // Update the user and save
+
+      // Update the users confirmation and save
       user.confirmed = true;
       user.confirmedAt = new Date();
       await user.save();
