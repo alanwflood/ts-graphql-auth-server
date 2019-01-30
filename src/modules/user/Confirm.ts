@@ -34,12 +34,14 @@ export class ConfirmResolver {
       // Get user from database with users Id
       const user = await User.findOne(userId);
       if (!user) throw new Error("User not found");
-      if (user.confirmed) throw new Error("User has already been confirmed");
 
-      // Update the users confirmation and save
-      user.confirmed = true;
-      user.confirmedAt = new Date();
-      await user.save();
+      // Only update the users confirmation if they're unconfirmed
+      if (!user.confirmed) {
+        user.confirmed = true;
+        user.confirmedAt = new Date();
+        await user.save();
+      }
+
       await redis.del(token);
 
       return user.confirmed;
@@ -57,11 +59,13 @@ export class ConfirmResolver {
     try {
       const user = await User.findOne({ where: { email } });
       if (!user) throw new Error("User not found");
-      if (user.confirmed) throw new Error("User has already been confirmed");
-      await sendConfirmation(user.email, user.id);
+      // Only send email if user is unconfirmed
+      if (!user.confirmed) {
+        await sendConfirmation(user.email, user.id);
+      }
       return true;
     } catch (err) {
-      console.log("Error resending confirmation to email (", email, "):", err);
+      console.log(`Error resending confirmation to email ${email}: `, err);
       return err;
     }
   }
