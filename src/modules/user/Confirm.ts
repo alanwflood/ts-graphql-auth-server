@@ -1,11 +1,22 @@
-import { Resolver, Mutation, Arg } from "type-graphql";
+import { Resolver, Mutation, Arg, Field, InputType } from "type-graphql";
+import { IsUUID } from "class-validator";
 import { User } from "../../entities";
 import redis from "../../utils/redisStore";
+
+@InputType()
+class ConfirmUserInput {
+  @Field()
+  @IsUUID("4")
+  token: string;
+}
 
 @Resolver()
 export class ConfirmResolver {
   @Mutation(() => Boolean)
-  async confirmUser(@Arg("token") token: string): Promise<void | Boolean> {
+  async confirmUser(@Arg("input")
+  {
+    token
+  }: ConfirmUserInput): Promise<void | Boolean> {
     try {
       const userId = await redis.get(token);
 
