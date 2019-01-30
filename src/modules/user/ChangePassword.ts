@@ -11,7 +11,7 @@ import { getCurrentUser } from "./CurrentUser";
 @Resolver()
 export class ChangePasswordResolver {
   @Mutation(() => Boolean)
-  async ChangeForgottenPassword(@Arg("input")
+  async changeForgottenPassword(@Arg("input")
   {
     token,
     newPassword
@@ -37,7 +37,7 @@ export class ChangePasswordResolver {
   }
 
   @Mutation(() => Boolean)
-  async ChangeCurrentUserPassword(
+  async changeCurrentUserPassword(
     @Arg("input")
     { currentPassword, newPassword }: ChangeCurrentUserPasswordInput,
     @Ctx() ctx: any

@@ -7,24 +7,13 @@ import redis from "./utils/redisStore";
 import "reflect-metadata";
 import { buildSchema, formatArgumentValidationError } from "type-graphql";
 import { createConnection } from "typeorm";
-import {
-  RegisterResolver,
-  LoginResolver,
-  ConfirmResolver,
-  CurrentUserResolver
-} from "./modules/User";
 import authChecker from "./modules/Auth";
 
 const main = async () => {
   await createConnection();
 
   const schema = await buildSchema({
-    resolvers: [
-      RegisterResolver,
-      LoginResolver,
-      ConfirmResolver,
-      CurrentUserResolver
-    ],
+    resolvers: [__dirname + "/modules/**/*.ts"],
     authChecker
   });
 
