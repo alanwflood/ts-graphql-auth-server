@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg, Authorized } from "type-graphql";
+import { Resolver, Mutation, Arg } from "type-graphql";
 import argon2 from "argon2";
 import { User } from "../../entities";
 import { RegisterInput } from "./register/RegisterInput";
@@ -7,20 +7,13 @@ import sendEmail from "../../utils/sendEmail";
 
 @Resolver(User)
 export class RegisterResolver {
-  @Authorized()
-  @Query(() => String)
-  async testData() {
-    return "Hello World";
-  }
-
   @Mutation(() => User)
   async registerUser(@Arg("input")
   {
     firstName,
     lastName,
     email,
-    password,
-    role
+    password
   }: RegisterInput): Promise<void | User> {
     try {
       const hash = await argon2.hash(password);
@@ -28,11 +21,10 @@ export class RegisterResolver {
         firstName,
         lastName,
         email,
-        password: hash,
-        role
+        password: hash
       }).save();
 
-      const token = await createToken(user.id, "cn-");
+      const token = await createToken(user.id);
 
       await sendEmail({
         to: email,
