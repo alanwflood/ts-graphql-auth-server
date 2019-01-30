@@ -28,6 +28,7 @@ export class RegisterResolver {
       return user;
     } catch (err) {
       console.log("Error creating user:", err);
+      return err;
     }
   }
 }

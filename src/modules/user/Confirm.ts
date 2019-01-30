@@ -1,5 +1,5 @@
 import { Resolver, Mutation, Arg, Field, InputType } from "type-graphql";
-import { IsUUID } from "class-validator";
+import { IsUUID, IsEmail } from "class-validator";
 import { User } from "../../entities";
 import redis from "../../utils/redisStore";
 import createToken from "../../utils/createToken";
@@ -10,6 +10,13 @@ class ConfirmUserInput {
   @Field()
   @IsUUID("4")
   token: string;
+}
+
+@InputType()
+class ResendUserConfirmationInput {
+  @Field()
+  @IsEmail()
+  email: string;
 }
 
 @Resolver()
@@ -38,6 +45,23 @@ export class ConfirmResolver {
       return user.confirmed;
     } catch (err) {
       console.log("Error confirming user:", err);
+      return err;
+    }
+  }
+
+  @Mutation(() => Boolean)
+  async resendUserConfirmation(@Arg("input")
+  {
+    email
+  }: ResendUserConfirmationInput): Promise<void | Boolean> {
+    try {
+      const user = await User.findOne({ where: { email } });
+      if (!user) throw new Error("User not found");
+      if (user.confirmed) throw new Error("User has already been confirmed");
+      await sendConfirmation(user.email, user.id);
+      return true;
+    } catch (err) {
+      console.log("Error resending confirmation to email (", email, "):", err);
       return err;
     }
   }
