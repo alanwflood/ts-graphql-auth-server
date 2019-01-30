@@ -17,10 +17,15 @@ export class ChangePasswordResolver {
     newPassword
   }: ChangeForgottenPasswordInput): Promise<void | Boolean> {
     try {
+      // Get user Id from redis token
       const userId = await redis.get(token);
       if (!userId) throw new Error("User ID not found from token");
+
+      // Find user
       const user = await User.findOne(userId);
       if (!user) throw new Error(`User tot found with ID ${userId}`);
+
+      // Hash and save new password
       const hashPassword = await argon2.hash(newPassword);
       user.password = hashPassword;
       await user.save();
@@ -38,13 +43,18 @@ export class ChangePasswordResolver {
     @Ctx() ctx: any
   ): Promise<void | Boolean> {
     try {
+      // Get current user from session data
       const currentUser = await getCurrentUser(ctx.session.userId);
       if (!currentUser) throw new Error("User not logged in");
+
+      // Check current password validity
       const validPassword = await argon2.verify(
         currentUser.password,
         currentPassword
       );
       if (!validPassword) throw new Error("Current password is incorrect");
+
+      // Hash and save new password
       const hashPassword = await argon2.hash(newPassword);
       currentUser.password = hashPassword;
       await currentUser.save();
