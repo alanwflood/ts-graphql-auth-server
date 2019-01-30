@@ -35,7 +35,8 @@ export class ConfirmResolver {
       const user = await User.findOne(userId);
       if (!user) throw new Error("User not found");
 
-      // Only update the users confirmation if they're unconfirmed
+      // (Slightly redundant!)
+      // Only update the users confirmation if they're  unconfirmed
       if (!user.confirmed) {
         user.confirmed = true;
         user.confirmedAt = new Date();
