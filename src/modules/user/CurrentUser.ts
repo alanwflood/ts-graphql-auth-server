@@ -6,9 +6,17 @@ import { User } from "../../entities";
 export class CurrentUserResolver {
   @Query(() => User, { nullable: true })
   async currentUser(@Ctx() ctx: any): Promise<void | User> {
-    if (ctx.session.userId) {
-      const id = ctx.session.userId;
-      return User.findOne({ where: { id } });
-    }
+    return getCurrentUser(ctx.session.userId);
+  }
+}
+
+export async function getCurrentUser(id: number): Promise<void | User> {
+  try {
+    if (!id) throw new Error("User not logged in");
+    const user = await User.findOne(id);
+    if (!user) throw new Error("User not found in database");
+    return user;
+  } catch (err) {
+    return err;
   }
 }

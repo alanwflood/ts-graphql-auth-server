@@ -19,19 +19,18 @@ export class ConfirmResolver {
     email
   }: ForgotPasswordInput): Promise<void | Boolean> {
     try {
+      // Find user with email
       const user = await User.findOne({ where: { email } });
-      // If user's missing throw an error
       if (!user) throw new Error("User not found");
-      // If user's missing throw an error
       if (!user.confirmed) throw new Error("User not confirmed yet");
-      const token = await createToken(user.id, "pr-");
 
+      // Create and send token for confirmation
+      const token = await createToken(user.id);
       await sendEmail({
         to: email,
         text: token,
         html: `<h1>${token}</h1>`
       });
-
       return true;
     } catch (err) {
       console.log("Error for user with forgotten password:", err);

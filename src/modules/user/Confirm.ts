@@ -1,24 +1,48 @@
-import { Resolver, Mutation, Arg } from "type-graphql";
+import { Resolver, Mutation, Arg, Field, InputType } from "type-graphql";
+import { IsUUID, IsEmail } from "class-validator";
 import { User } from "../../entities";
 import redis from "../../utils/redisStore";
+import createToken from "../../utils/createToken";
+import sendEmail from "../../utils/sendEmail";
+
+@InputType()
+class ConfirmUserInput {
+  @Field()
+  @IsUUID("4")
+  token: string;
+}
+
+@InputType()
+class ResendUserConfirmationInput {
+  @Field()
+  @IsEmail()
+  email: string;
+}
 
 @Resolver()
 export class ConfirmResolver {
   @Mutation(() => Boolean)
-  async confirmUser(@Arg("token") token: string): Promise<void | Boolean> {
+  async confirmUser(@Arg("input")
+  {
+    token
+  }: ConfirmUserInput): Promise<void | Boolean> {
     try {
+      // Get user Id from redis token
       const userId = await redis.get(token);
-
       if (!userId) throw new Error("User ID not found from token");
 
+      // Get user from database with users Id
       const user = await User.findOne(userId);
-      // If user's missing or already confirmed throw an error
       if (!user) throw new Error("User not found");
-      if (user.confirmed) throw new Error("User has already been confirmed");
-      // Update the user and save
-      user.confirmed = true;
-      user.confirmedAt = new Date();
-      await user.save();
+
+      // (Slightly redundant!)
+      // Only update the users confirmation if they're  unconfirmed
+      if (!user.confirmed) {
+        user.confirmed = true;
+        user.confirmedAt = new Date();
+        await user.save();
+      }
+
       await redis.del(token);
 
       return user.confirmed;
@@ -27,4 +51,36 @@ export class ConfirmResolver {
       return err;
     }
   }
+
+  @Mutation(() => Boolean)
+  async resendUserConfirmation(@Arg("input")
+  {
+    email
+  }: ResendUserConfirmationInput): Promise<void | Boolean> {
+    try {
+      const user = await User.findOne({ where: { email } });
+      if (!user) throw new Error("User not found");
+      // Only send email if user is unconfirmed
+      if (!user.confirmed) {
+        await sendConfirmation(user.email, user.id);
+      }
+      return true;
+    } catch (err) {
+      console.log(`Error resending confirmation to email ${email}: `, err);
+      return err;
+    }
+  }
+}
+
+export async function sendConfirmation(
+  userEmail: string,
+  userId: number
+): Promise<void> {
+  const token = await createToken(userId);
+
+  await sendEmail({
+    to: userEmail,
+    text: token,
+    html: `<h1>${token}</h1>`
+  });
 }
