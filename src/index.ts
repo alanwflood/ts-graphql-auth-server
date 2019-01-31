@@ -16,6 +16,9 @@ dotenv.config();
 const main = async () => {
   await createConnection();
 
+  const port = process.env.PORT || 4000;
+  const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
+
   const schema = await buildSchema({
     resolvers: [__dirname + "/modules/**/*.ts"],
     authChecker
@@ -46,7 +49,7 @@ const main = async () => {
   app.use(
     cors({
       credentials: true,
-      origin: "http://localhost:4000"
+      origin: serverUrl
     })
   );
 
@@ -79,10 +82,8 @@ const main = async () => {
 
   server.applyMiddleware({ app });
 
-  app.listen({ port: 4000 }, () => {
-    console.log(
-      `🚀 Server ready at http://localhost:4000${server.graphqlPath}`
-    );
+  app.listen({ port }, () => {
+    console.log(`🚀 Server ready at ${serverUrl}${server.graphqlPath}`);
   });
 };
 main();
