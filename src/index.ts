@@ -2,12 +2,16 @@ import { ApolloServer } from "apollo-server-koa";
 import Koa from "koa";
 import cors from "@koa/cors";
 import session from "koa-session";
-import redis from "./utils/redisStore";
-
 import "reflect-metadata";
 import { buildSchema, formatArgumentValidationError } from "type-graphql";
 import { createConnection } from "typeorm";
+
+import dotenv from "dotenv";
+
+import redis from "./utils/redisStore";
 import authChecker from "./modules/Auth";
+
+dotenv.config();
 
 const main = async () => {
   await createConnection();
