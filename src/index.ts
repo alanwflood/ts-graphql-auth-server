@@ -3,13 +3,13 @@ import Koa from "koa";
 import cors from "@koa/cors";
 import session from "koa-session";
 import "reflect-metadata";
-import { buildSchema, formatArgumentValidationError } from "type-graphql";
+import { formatArgumentValidationError } from "type-graphql";
 import { createConnection } from "typeorm";
 
 import dotenv from "dotenv";
 
+import { createSchema } from "./schema";
 import redis from "./utils/redisStore";
-import authChecker from "./modules/Auth";
 
 dotenv.config();
 
@@ -19,10 +19,7 @@ const main = async () => {
   const port = process.env.PORT || 4000;
   const serverUrl = process.env.SERVER_URL || `http://localhost:${port}`;
 
-  const schema = await buildSchema({
-    resolvers: [__dirname + "/modules/**/*.ts"],
-    authChecker
-  });
+  const schema = await createSchema();
 
   const server = new ApolloServer({
     schema,

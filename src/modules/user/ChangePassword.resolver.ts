@@ -6,7 +6,7 @@ import {
   ChangeForgottenPasswordInput,
   ChangeCurrentUserPasswordInput
 } from "./changePassword/ChangePasswordInput";
-import { getCurrentUser } from "./CurrentUser";
+import { getCurrentUser } from "./currentUser/getCurrentUser";
 
 @Resolver()
 export class ChangePasswordResolver {

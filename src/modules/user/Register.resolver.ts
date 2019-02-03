@@ -2,7 +2,7 @@ import { Resolver, Mutation, Arg } from "type-graphql";
 import argon2 from "argon2";
 import { User } from "../../entities";
 import { RegisterInput } from "./register/RegisterInput";
-import { sendConfirmation } from "./Confirm";
+import { sendConfirmation } from "./confirm/sendConfirmation";
 
 @Resolver(User)
 export class RegisterResolver {
